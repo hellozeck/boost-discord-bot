@@ -23,7 +23,7 @@ module.exports = {
 
         try {
             const { data, error } = await supabase
-                .from('boost.wallet_blind')
+                .from('wallet_blind')
                 .upsert(
                     {
                         userid: userId,
@@ -41,6 +41,7 @@ module.exports = {
             await interaction.reply({ content: `Successfully bound wallet address: ${walletAddress}`, ephemeral: true });
         } catch (error) {
             console.error('Error binding wallet:', error);
+            console.error('Error details:', error.message, error.stack);
             await interaction.reply({ content: 'An error occurred while binding the wallet. Please try again later.', ephemeral: true });
         }
     },
