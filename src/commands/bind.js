@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { ethers } = require('ethers');
+const ethers = require('ethers');
 const supabase = require('../utils/supabase');
 
 module.exports = {
