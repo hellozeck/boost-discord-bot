@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const ethers = require('ethers');
+const { ethers } = require('ethers');
 const supabase = require('../utils/supabase');
 
 module.exports = {
@@ -16,7 +16,7 @@ module.exports = {
         const userId = interaction.user.id;
 
         // Validate wallet address format
-        if (!ethers.utils.isAddress(walletAddress)) {
+        if (!ethers.isAddress(walletAddress)) {
             await interaction.reply({ content: 'Invalid EVM wallet address format. Please provide a valid address.', ephemeral: true });
             return;
         }
