@@ -12,6 +12,16 @@ module.exports = {
                 .setRequired(true)),
 
     async execute(interaction) {
+        // Add guild ID verification
+        const allowedGuildId = process.env.ALLOWED_GUILD_ID; // Need to set allowed guild ID in environment variables
+        if (interaction.guildId !== allowedGuildId) {
+            await interaction.reply({
+                content: 'This command is only available for members of the specified server.',
+                ephemeral: true
+            });
+            return;
+        }
+
         const walletAddress = interaction.options.getString('wallet');
         const userId = interaction.user.id;
 
