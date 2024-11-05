@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits, ButtonBuilder, ActionRowBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 const { endGiveaway } = require('../utils/giveawayManager');
+const supabase = require('../utils/supabase');
 
 module.exports = {
     data: new SlashCommandBuilder()
