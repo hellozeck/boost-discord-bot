@@ -17,16 +17,25 @@ module.exports = {
                 .setRequired(true)),
 
     async execute(interaction) {
+        console.log(`[Giveaway] Command started at ${new Date().toISOString()}`);
+
+        // Defer the reply to let Discord know we're processing
+        await interaction.deferReply();
+        console.log('[Giveaway] Reply deferred');
+
         const winners = interaction.options.getInteger('winners');
         const endTime = new Date(interaction.options.getString('end_time'));
+        console.log(`[Giveaway] Parsed input - winners: ${winners}, endTime: ${endTime}`);
 
         if (endTime < new Date()) {
-            return await interaction.reply({
+            console.log('[Giveaway] Invalid end time - must be in future');
+            return await interaction.editReply({
                 content: 'End time must be in the future!',
                 ephemeral: true
             });
         }
 
+        const startEmbed = Date.now();
         const giveawayEmbed = new EmbedBuilder()
             .setTitle('🎉 New Giveaway')
             .setDescription(`
@@ -36,40 +45,43 @@ module.exports = {
                 Click the button below to join!
             `)
             .setColor('#FF0000');
+        console.log(`[Giveaway] Embed created in ${Date.now() - startEmbed}ms`);
 
-        const joinButton = new ButtonBuilder()
-            .setCustomId('join_giveaway')
-            .setLabel('Join Giveaway')
-            .setStyle(ButtonStyle.Primary);
-
-        const row = new ActionRowBuilder()
-            .addComponents(joinButton);
-
-        const message = await interaction.reply({
+        const startReply = Date.now();
+        const message = await interaction.editReply({
             embeds: [giveawayEmbed],
             components: [row],
             fetchReply: true
         });
+        console.log(`[Giveaway] Reply sent in ${Date.now() - startReply}ms`);
 
         // Save giveaway to Supabase
-        const { data, error } = await supabase
-            .from('giveaways')
-            .insert({
-                message_id: message.id,
-                channel_id: interaction.channelId,
-                end_time: endTime.toISOString(),
-                winners_count: winners,
-                status: 'active'
-            })
-            .select()
-            .single();
+        try {
+            const startDb = Date.now();
+            const { data, error } = await supabase
+                .from('giveaways')
+                .insert({
+                    message_id: message.id,
+                    channel_id: interaction.channelId,
+                    end_time: endTime.toISOString(),
+                    winners_count: winners,
+                    status: 'active'
+                })
+                .select()
+                .single();
 
-        if (error) {
-            console.error('Error creating giveaway:', error);
-            return;
+            if (error) throw error;
+            console.log(`[Giveaway] Database operation completed in ${Date.now() - startDb}ms`);
+
+            // Set timeout for giveaway end
+            setTimeout(() => endGiveaway(data.id, interaction.client), endTime - new Date());
+            console.log(`[Giveaway] Command completed successfully at ${new Date().toISOString()}`);
+        } catch (error) {
+            console.error('[Giveaway] Error creating giveaway:', error);
+            await interaction.followUp({
+                content: 'There was an error creating the giveaway.',
+                ephemeral: true
+            });
         }
-
-        // Set timeout for giveaway end
-        setTimeout(() => endGiveaway(data.id, interaction.client), endTime - new Date());
     },
 }; 
