@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits, ButtonBuilder, ActionRowBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
-const supabase = require('../utils/supabase');
+const { endGiveaway } = require('../utils/giveawayManager');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -69,6 +69,6 @@ module.exports = {
         }
 
         // Set timeout for giveaway end
-        setTimeout(() => endGiveaway(data.id), endTime - new Date());
+        setTimeout(() => endGiveaway(data.id, interaction.client), endTime - new Date());
     },
 }; 
