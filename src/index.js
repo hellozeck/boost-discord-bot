@@ -1,7 +1,8 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
-const { Client, GatewayIntentBits, Collection, REST, Routes } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, REST, Routes, Events } = require('discord.js');
+const { initializeGiveaways } = require('./utils/giveawayManager');
 
 const client = new Client({
     intents: [
@@ -73,6 +74,12 @@ async function deployCommands() {
         console.error(error);
     }
 }
+
+client.once(Events.ClientReady, async () => {
+    console.log('Bot is ready!');
+    // Initialize active giveaways when bot starts
+    await initializeGiveaways(client);
+});
 
 client.login(process.env.DISCORD_TOKEN)
     .then(() => {
