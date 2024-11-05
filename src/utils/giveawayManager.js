@@ -83,18 +83,18 @@ async function initializeGiveaways(client) {
         const now = new Date();
 
         // Set up timeouts for each active giveaway
-        activeGiveaways.forEach(giveaway => {
+        for (const giveaway of activeGiveaways) {
             const endTime = new Date(giveaway.end_time);
             const timeLeft = endTime - now;
 
             if (timeLeft <= 0) {
                 // End immediately if end time has passed
-                endGiveaway(giveaway.id, client);
+                await endGiveaway(giveaway.id, client);
             } else {
                 // Set timeout for future end time
                 setTimeout(() => endGiveaway(giveaway.id, client), timeLeft);
             }
-        });
+        }
 
         console.log(`Initialized ${activeGiveaways.length} active giveaways`);
 
