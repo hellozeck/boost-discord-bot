@@ -94,3 +94,41 @@ client.login(process.env.DISCORD_TOKEN)
 process.on('unhandledRejection', error => {
     console.error('Unhandled promise rejection:', error);
 });
+
+// Add command handling logs
+client.on(Events.InteractionCreate, async interaction => {
+    if (!interaction.isChatInputCommand()) return;
+
+    console.log(`[Command] Received command: ${interaction.commandName}`);
+
+    const command = client.commands.get(interaction.commandName);
+    if (!command) {
+        console.log(`[Command] Command ${interaction.commandName} not found`);
+        return;
+    }
+
+    try {
+        console.log(`[Command] Executing command: ${interaction.commandName}`);
+        await command.execute(interaction);
+        console.log(`[Command] Command ${interaction.commandName} executed successfully`);
+    } catch (error) {
+        console.error(`[Command] Error executing ${interaction.commandName}:`, error);
+        if (!interaction.replied && !interaction.deferred) {
+            await interaction.reply({
+                content: 'There was an error executing this command!',
+                ephemeral: true
+            });
+        } else {
+            await interaction.followUp({
+                content: 'There was an error executing this command!',
+                ephemeral: true
+            });
+        }
+    }
+});
+
+// Add ready event log
+client.once(Events.ClientReady, () => {
+    console.log(`[Bot] Logged in as ${client.user.tag}`);
+    console.log('[Bot] Commands loaded:', Array.from(client.commands.keys()));
+});
