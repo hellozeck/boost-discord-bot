@@ -45,7 +45,17 @@ module.exports = {
                 Click the button below to join!
             `)
             .setColor('#FF0000');
-        console.log(`[Giveaway] Embed created in ${Date.now() - startEmbed}ms`);
+
+        // Create button and action row
+        const joinButton = new ButtonBuilder()
+            .setCustomId('join_giveaway')
+            .setLabel('Join Giveaway')
+            .setStyle(ButtonStyle.Primary);
+
+        const row = new ActionRowBuilder()
+            .addComponents(joinButton);
+
+        console.log(`[Giveaway] Embed and components created in ${Date.now() - startEmbed}ms`);
 
         const startReply = Date.now();
         const message = await interaction.editReply({
