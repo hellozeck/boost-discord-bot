@@ -11,9 +11,23 @@ module.exports = {
                 const userId = interaction.user.id;
                 const messageId = interaction.message.id;
 
+                const { data: walletData, error: walletError } = await supabase
+                    .from('wallet_blind')
+                    .select('wallet_address')
+                    .eq('userid', userId)
+                    .single();
+
+                if (walletError || !walletData) {
+                    await interaction.reply({
+                        content: 'Please bind your wallet first before joining the giveaway.',
+                        ephemeral: true
+                    });
+                    return;
+                }
+
                 const { data: giveaway, error: giveawayError } = await supabase
                     .from('giveaways')
-                    .select('id')
+                    .select('id, status')
                     .eq('message_id', messageId)
                     .single();
 
@@ -21,6 +35,14 @@ module.exports = {
                     console.error('Error finding giveaway:', giveawayError);
                     await interaction.reply({
                         content: 'Error finding giveaway. Please try again later.',
+                        ephemeral: true
+                    });
+                    return;
+                }
+
+                if (giveaway.status !== 'active') {
+                    await interaction.reply({
+                        content: 'This giveaway has ended.',
                         ephemeral: true
                     });
                     return;
@@ -41,52 +63,27 @@ module.exports = {
                     return;
                 }
 
+                const { error } = await supabase
+                    .from('giveaway_participants')
+                    .insert({
+                        giveaway_id: giveaway.id,
+                        user_id: userId,
+                        wallet_address: walletData.wallet_address
+                    });
+
+                if (error) {
+                    console.error('Error adding participant:', error);
+                    await interaction.reply({
+                        content: 'Error joining giveaway. Please try again later.',
+                        ephemeral: true
+                    });
+                    return;
+                }
+
                 await interaction.reply({
-                    content: 'Please enter your wallet address to participate in the giveaway.',
+                    content: 'You have successfully entered the giveaway! Good luck!',
                     ephemeral: true
                 });
-
-                const filter = m => m.author.id === userId;
-                const channel = interaction.channel;
-
-                try {
-                    const collected = await channel.awaitMessages({
-                        filter,
-                        max: 1,
-                        time: 60000,
-                        errors: ['time']
-                    });
-
-                    const walletAddress = collected.first().content;
-
-                    const { error } = await supabase
-                        .from('giveaway_participants')
-                        .insert({
-                            giveaway_id: giveaway.id,
-                            user_id: userId,
-                            wallet_address: walletAddress
-                        });
-
-                    if (error) {
-                        console.error('Error adding participant:', error);
-                        await interaction.followUp({
-                            content: 'Error joining giveaway. Please try again later.',
-                            ephemeral: true
-                        });
-                        return;
-                    }
-
-                    await interaction.followUp({
-                        content: 'You have successfully entered the giveaway! Good luck!',
-                        ephemeral: true
-                    });
-
-                } catch (err) {
-                    await interaction.followUp({
-                        content: 'No wallet address provided. Please try again.',
-                        ephemeral: true
-                    });
-                }
 
             } catch (err) {
                 console.error('Unexpected error:', err);
