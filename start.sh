@@ -1,20 +1,57 @@
 #!/bin/bash
 
-# 创建logs目录（如果不存在）
-mkdir -p logs
+# Function: Stop existing process
+stop_app() {
+    if [ -f .pid ]; then
+        OLD_PID=$(cat .pid)
+        if ps -p $OLD_PID > /dev/null; then
+            echo "Stopping existing process (PID: $OLD_PID)..."
+            kill $OLD_PID
+            sleep 2
+        fi
+        rm .pid
+    fi
+}
 
-# 获取当前时间作为日志文件名
-TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-LOG_FILE="logs/app_$TIMESTAMP.log"
+# Function: Start application
+start_app() {
+    # Create logs directory if it doesn't exist
+    mkdir -p logs
 
-# 使用nohup启动应用
-nohup npm start > "$LOG_FILE" 2>&1 &
+    # Get current timestamp for log filename
+    TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+    LOG_FILE="logs/app_$TIMESTAMP.log"
 
-# 获取进程ID
-PID=$!
+    # Start application with nohup
+    nohup npm start > "$LOG_FILE" 2>&1 &
 
-# 将PID写入文件
-echo $PID > .pid
+    # Get process ID
+    PID=$!
 
-echo "Application started with PID: $PID"
-echo "Logs are being written to: $LOG_FILE" 
+    # Write PID to file
+    echo $PID > .pid
+
+    echo "Application started with PID: $PID"
+    echo "Logs are being written to: $LOG_FILE"
+}
+
+# Main logic
+case "$1" in
+    start)
+        stop_app
+        start_app
+        ;;
+    restart)
+        stop_app
+        start_app
+        ;;
+    stop)
+        stop_app
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+        ;;
+esac
+
+exit 0 
