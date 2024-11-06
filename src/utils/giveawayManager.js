@@ -61,6 +61,35 @@ async function endGiveaway(giveawayId, client) {
             embeds: [winnersEmbed]
         });
 
+        // Store winner information from participants table
+        for (const winner of winners) {
+            // First, get the winner's wallet address from participants
+            const { data: participantData, error: participantError } = await supabase
+                .from('giveaway_participants')
+                .select('wallet_address')
+                .eq('giveaway_id', giveawayId)
+                .eq('user_id', winner.id)
+                .single();
+
+            if (participantError) {
+                console.error('Error fetching participant data:', participantError);
+                continue;
+            }
+
+            // Insert winner information into giveaway_winners table
+            const { error: insertError } = await supabase
+                .from('giveaway_winners')
+                .insert({
+                    giveaway_id: giveawayId,
+                    user_id: winner.id,
+                    wallet_address: participantData.wallet_address,
+                });
+
+            if (insertError) {
+                console.error('Error storing winner information:', insertError);
+            }
+        }
+
     } catch (err) {
         console.error('Error ending giveaway:', err);
     }
