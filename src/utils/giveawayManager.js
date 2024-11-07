@@ -40,6 +40,14 @@ async function endGiveaway(giveawayId, client) {
         const channel = await client.channels.fetch(giveaway.channel_id);
         const message = await channel.messages.fetch(giveaway.message_id);
 
+        // Print winners
+        if (winners.length > 0) {
+            console.log('Giveaway winners:', winners.map(w => ({
+                user_id: w.user_id,
+                username: w.username || 'Unknown'
+            })));
+        }
+
         // Create winners announcement
         const winnersEmbed = new EmbedBuilder()
             .setTitle('🎉 Giveaway Ended!')
