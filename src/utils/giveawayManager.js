@@ -40,12 +40,65 @@ async function endGiveaway(giveawayId, client) {
         const channel = await client.channels.fetch(giveaway.channel_id);
         const message = await channel.messages.fetch(giveaway.message_id);
 
-        // Print winners
-        if (winners.length > 0) {
-            console.log('Giveaway winners:', winners.map(w => ({
-                user_id: w.user_id,
-                username: w.username || 'Unknown'
-            })));
+        // Print basic winner information first
+        console.log('Giveaway winners:', winners.map(w => ({
+            user_id: w.user_id
+        })));
+
+        // Try to get wallet addresses from giveaway_participants table
+        try {
+            const winnerDetails = await Promise.all(
+                winners.map(async (winner) => {
+                    try {
+                        const { data, error } = await supabase
+                            .from('giveaway_participants')
+                            .select('user_id, wallet_address')
+                            .eq('giveaway_id', giveawayId)
+                            .eq('user_id', winner.user_id)
+                            .maybeSingle();
+
+                        if (error) {
+                            console.log(`Unable to fetch participant data for user ${winner.user_id}:`, error);
+                            return {
+                                user_id: winner.user_id,
+                                wallet_address: null
+                            };
+                        }
+
+                        return {
+                            user_id: winner.user_id,
+                            wallet_address: data?.wallet_address
+                        };
+                    } catch (error) {
+                        console.log(`Error processing participant ${winner.user_id}:`, error);
+                        return {
+                            user_id: winner.user_id,
+                            wallet_address: null
+                        };
+                    }
+                })
+            );
+
+            console.log('Winner details with wallet addresses:', winnerDetails);
+
+            // Save winner information to giveaway_winners table
+            await Promise.all(
+                winnerDetails.map(winner => {
+                    if (winner.wallet_address) {
+                        return supabase
+                            .from('giveaway_winners')
+                            .insert({
+                                giveaway_id: giveawayId,
+                                user_id: winner.user_id,
+                                wallet_address: winner.wallet_address
+                            });
+                    }
+                    return Promise.resolve();
+                })
+            );
+
+        } catch (error) {
+            console.error('Error processing winner details:', error);
         }
 
         // Create winners announcement
@@ -68,35 +121,6 @@ async function endGiveaway(giveawayId, client) {
                 : 'The giveaway has ended, but there were no participants.',
             embeds: [winnersEmbed]
         });
-
-        // Store winner information from participants table
-        for (const winner of winners) {
-            // First, get the winner's wallet address from participants
-            const { data: participantData, error: participantError } = await supabase
-                .from('giveaway_participants')
-                .select('wallet_address')
-                .eq('giveaway_id', giveawayId)
-                .eq('user_id', winner.id)
-                .single();
-
-            if (participantError) {
-                console.error('Error fetching participant data:', participantError);
-                continue;
-            }
-
-            // Insert winner information into giveaway_winners table
-            const { error: insertError } = await supabase
-                .from('giveaway_winners')
-                .insert({
-                    giveaway_id: giveawayId,
-                    user_id: winner.id,
-                    wallet_address: participantData.wallet_address,
-                });
-
-            if (insertError) {
-                console.error('Error storing winner information:', insertError);
-            }
-        }
 
     } catch (err) {
         console.error('Error ending giveaway:', err);
