@@ -26,3 +26,10 @@ create table giveaway_participants (
   unique(giveaway_id, user_id)
 );
 
+create table giveaway_winners (
+    id uuid default uuid_generate_v4() primary key,
+    giveaway_id uuid references giveaways(id),
+    user_id text not null,
+    wallet_address text not null,  -- Set to not null since wallet_address is required in participants table
+    timestamp timestamptz default now()
+);
