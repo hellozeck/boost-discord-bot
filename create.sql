@@ -60,3 +60,17 @@ create table gm_records (
 
 -- 添加username索引以提升查询性能
 create index idx_gm_records_username on gm_records(username);
+
+
+create or replace function increment_gm_count(p_user_id text, p_username text)
+returns void as $$
+begin
+    insert into gm_records (user_id, username, gm_count, last_gm_at)
+    values (p_user_id, p_username, 1, now())
+    on conflict (user_id) 
+    do update set 
+        username = p_username,
+        gm_count = gm_records.gm_count + 1,
+        last_gm_at = now();
+end;
+$$ language plpgsql;

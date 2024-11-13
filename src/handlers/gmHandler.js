@@ -6,21 +6,10 @@ module.exports = async function gmHandler(message) {
 
     try {
         // Record GM activity in Supabase
-        const { error } = await supabase
-            .from('gm_records')
-            .upsert({
-                user_id: message.author.id,
-                username: message.author.username,
-                last_gm_at: new Date().toISOString(),
-                gm_count: 1
-            }, {
-                onConflict: 'user_id',
-                update: {
-                    username: message.author.username,
-                    last_gm_at: new Date().toISOString(),
-                    gm_count: sql`gm_count + 1`
-                }
-            });
+        const { error } = await supabase.rpc('increment_gm_count', {
+            p_user_id: message.author.id,
+            p_username: message.author.username
+        });
 
         if (error) throw error;
 
