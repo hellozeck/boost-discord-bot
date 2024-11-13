@@ -1,6 +1,6 @@
 const { EmbedBuilder } = require('discord.js');
 const supabase = require('../utils/supabase');
-const { checkBoostTwitterBinding } = require('../utils/boostApi');
+// const { checkBoostTwitterBinding } = require('../utils/boostApi');
 
 module.exports = async function postXHandler(message) {
     try {
@@ -53,19 +53,19 @@ module.exports = async function postXHandler(message) {
         }
 
         // Step 3: Verify Twitter binding with Boost API
-        const isTwitterBound = await checkBoostTwitterBinding(
-            walletData.wallet_address,
-            username
-        );
+        // const isTwitterBound = await checkBoostTwitterBinding(
+        //     walletData.wallet_address,
+        //     username
+        // );
 
-        if (!isTwitterBound) {
-            await message.delete();
-            const reminder = await message.channel.send(
-                `${message.author}, your wallet must be bound to this Twitter account in Boost!`
-            );
-            setTimeout(() => reminder.delete(), 5000);
-            return;
-        }
+        // if (!isTwitterBound) {
+        //     await message.delete();
+        //     const reminder = await message.channel.send(
+        //         `${message.author}, your wallet must be bound to this Twitter account in Boost!`
+        //     );
+        //     setTimeout(() => reminder.delete(), 5000);
+        //     return;
+        // }
 
         // Step 4: Store verified tweet in Supabase
         const { error: insertError } = await supabase
