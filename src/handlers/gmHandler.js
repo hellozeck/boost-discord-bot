@@ -12,9 +12,14 @@ module.exports = async function gmHandler(message) {
                 user_id: message.author.id,
                 username: message.author.username,
                 last_gm_at: new Date().toISOString(),
-                gm_count: supabase.raw('gm_count + 1')
+                gm_count: 1
             }, {
-                onConflict: 'user_id'
+                onConflict: 'user_id',
+                update: {
+                    username: message.author.username,
+                    last_gm_at: new Date().toISOString(),
+                    gm_count: sql`gm_count + 1`
+                }
             });
 
         if (error) throw error;
