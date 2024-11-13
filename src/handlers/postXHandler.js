@@ -6,16 +6,23 @@ module.exports = async function postXHandler(message) {
     try {
         // Check if message contains X (Twitter) link
         const twitterRegex = /(https?:\/\/(twitter|x)\.com\/(\w+)\/status\/(\d+))/i;
+        console.log('Checking message content:', message.content);
+
         const match = message.content.match(twitterRegex);
+        console.log('Regex match result:', match);
 
         if (!match) {
+            console.log(`Invalid message from ${message.author.username} (${message.author.id}):`, message.content);
             await message.delete();
             const reminder = await message.channel.send(
                 `${message.author}, this channel only allows Twitter/X links!`
             );
+            console.log('Sent reminder to user about invalid message');
             setTimeout(() => reminder.delete(), 5000);
             return;
         }
+
+        console.log(`Valid X/Twitter link detected from ${message.author.username}:`, match[1]);
 
         const [fullMatch, tweetUrl, platform, username, tweetId] = match;
 
