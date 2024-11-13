@@ -17,7 +17,7 @@ module.exports = async function postXHandler(message) {
             return;
         }
 
-        const [_, tweetUrl, _, username, tweetId] = match;
+        const [fullMatch, tweetUrl, platform, username, tweetId] = match;
 
         // Step 1: Get user's wallet address from wallet_blind table
         const { data: walletData, error: walletError } = await supabase
