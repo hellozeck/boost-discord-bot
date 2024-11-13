@@ -1,5 +1,5 @@
 const { EmbedBuilder } = require('discord.js');
-const { supabase } = require('../utils/supabaseClient');
+const supabase = require('../utils/supabase');
 const { checkBoostTwitterBinding } = require('../utils/boostApi');
 
 module.exports = async function postXHandler(message) {

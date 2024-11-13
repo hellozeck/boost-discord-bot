@@ -1,4 +1,4 @@
-const { supabase } = require('../utils/supabaseClient');
+const supabase = require('../utils/supabase');
 
 module.exports = async function gmHandler(message) {
     // List of emojis to randomly select from
