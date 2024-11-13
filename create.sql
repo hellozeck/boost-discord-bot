@@ -58,7 +58,6 @@ create table gm_records (
     created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
--- 添加username索引以提升查询性能
 create index idx_gm_records_username on gm_records(username);
 
 
@@ -74,3 +73,14 @@ begin
         last_gm_at = now();
 end;
 $$ language plpgsql;
+
+
+create table user_feedback (
+    id serial primary key,
+    user_id text not null,
+    username text not null,
+    content text not null,
+    created_at timestamp with time zone default timezone('utc'::text, now())
+);
+
+create index idx_user_feedback_user_id on user_feedback(user_id);
