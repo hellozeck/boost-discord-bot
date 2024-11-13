@@ -97,12 +97,12 @@ module.exports = async function postXHandler(message) {
             })
             .setDescription(message.content)
             .addFields(
-                { name: 'Wallet', value: `${walletData.wallet_address.slice(0, 6)}...${walletData.wallet_address.slice(-4)}` }
+                { name: 'Wallet', value: `${walletData.wallet_address.slice(0, 6)}...${walletData.wallet_address.slice(-4)}` },
+                { name: 'Status', value: '✅ Tweet successfully recorded!' }
             )
             .setTimestamp();
 
         await message.channel.send({ embeds: [embed] });
-        await message.delete();
 
     } catch (error) {
         console.error('Error in postXHandler:', error);
