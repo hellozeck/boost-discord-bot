@@ -61,16 +61,20 @@ create table gm_records (
 create index idx_gm_records_username on gm_records(username);
 
 
+-- Function to increment GM count for a user
+-- Returns the updated GM count after increment
 create or replace function increment_gm_count(p_user_id text, p_username text)
-returns void as $$
+returns table (gm_count bigint) as $$
 begin
+    return query
     insert into gm_records (user_id, username, gm_count, last_gm_at)
     values (p_user_id, p_username, 1, now())
     on conflict (user_id) 
     do update set 
         username = p_username,
         gm_count = gm_records.gm_count + 1,
-        last_gm_at = now();
+        last_gm_at = now()
+    returning gm_count;  -- Return the updated count
 end;
 $$ language plpgsql;
 

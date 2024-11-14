@@ -4,7 +4,16 @@ module.exports = async function gmHandler(message) {
     // List of emojis to randomly select from
     const emojis = ['🚀', '💪', '🔥', '⭐', '✨', '💫'];
 
+    // Generate 1-3 random emojis
+    const emojiCount = Math.floor(Math.random() * 3) + 1;
+    const selectedEmojis = [];
+    for (let i = 0; i < emojiCount; i++) {
+        const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+        selectedEmojis.push(randomEmoji);
+    }
+
     try {
+        // Call RPC to increment GM count
         const { data, error } = await supabase.rpc('increment_gm_count', {
             p_user_id: message.author.id,
             p_username: message.author.username
@@ -12,23 +21,15 @@ module.exports = async function gmHandler(message) {
 
         if (error) throw error;
 
-        // Handle case where data might be null/undefined
-        const gmCount = data?.gm_count || 1;
+        // Get the updated count from response
+        const gmCount = data?.[0]?.gm_count;
 
-        // Get 1-3 random emojis
-        const emojiCount = Math.floor(Math.random() * 3) + 1;
-        const selectedEmojis = [];
-        for (let i = 0; i < emojiCount; i++) {
-            const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-            selectedEmojis.push(randomEmoji);
-        }
-
-        // Reply with GBOOST and random emojis
+        // Reply with emojis and GM count
         await message.reply(`GBOOST! ${selectedEmojis.join('')} (GM #${gmCount})`);
 
     } catch (error) {
         console.error('Error in GM handler:', error);
-        // Fallback response in case of database error
+        // Fallback response without count on error
         await message.reply(`GBOOST! ${selectedEmojis.join('')}`);
     }
 }; 
