@@ -4,6 +4,5 @@ const feedbackHandler = require('./feedbackHandler');
 
 module.exports = {
     'postX': postXHandler,
-    'gm': gmHandler,
-    'feedback': feedbackHandler
+    'gm': gmHandler
 }; 
