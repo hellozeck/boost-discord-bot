@@ -118,7 +118,7 @@ async function fetchParticipantsFromDB() {
     }
 }
 
-export async function runBonanza() {
+async function runBonanza() {
     try {
         console.log("Boost Guild Auto Boost starting...");
         
@@ -193,6 +193,7 @@ async function saveBonanzaResults(winners, totalParticipants) {
     }
 }
 
+// Export the function using CommonJS syntax
 module.exports = {
     runBonanza
 }; 
