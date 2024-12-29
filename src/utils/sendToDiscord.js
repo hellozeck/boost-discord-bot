@@ -1,6 +1,6 @@
 const channelMapping = require('../config/channelMapping');
 
-async function sendMessage(client, message) {
+async function sendMessage(client, message, channelId) {
     try {
         // 确保 client 已经准备好
         if (!client || !client.isReady()) {
@@ -8,7 +8,7 @@ async function sendMessage(client, message) {
             return;
         }
 
-        const channel = await client.channels.fetch(channelMapping.BONANZA_CHANNEL);
+        const channel = await client.channels.fetch(channelId);
         if (!channel) {
             throw new Error('Could not find the specified channel');
         }
