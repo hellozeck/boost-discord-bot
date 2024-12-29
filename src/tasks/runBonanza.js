@@ -133,10 +133,10 @@ async function runBonanza(client) {
 
         console.log("Boost Guild Auto Boost starting...");
         
-        // Add this line to get the channel ID from channelMapping
-        const channelId = channelMapping.BONANZA_RESULTS_CHANNEL;
+        // Directly use the channel ID for daily-bonanza
+        const channelId = '1272752734721937480'; // Daily Bonanza channel
         if (!channelId) {
-            throw new Error('BONANZA_RESULTS_CHANNEL not configured in channelMapping');
+            throw new Error('Channel ID not configured');
         }
 
         // Step 1: Fetch data from Dune
@@ -179,14 +179,12 @@ Good luck next time to everyone else! 🍀
 
         for (const part of messageParts) {
             try {
-                // Pass the channelId to sendMessage
                 await sendMessage(client, part, channelId);
             } catch (error) {
                 console.error('Failed to send message part:', error);
             }
         }
 
-        // Update saveBonanzaResults call to use winner wallets
         await saveBonanzaResults(winners.map(w => w.wallet), data.length);
 
     } catch (error) {
@@ -194,10 +192,9 @@ Good luck next time to everyone else! 🍀
         if (error instanceof Error) {
             console.error("Error message:", error.message);
         }
-        // Update error message sending to include channelId
         try {
-            const errorChannelId = channelMapping.ERROR_CHANNEL || channelMapping.BONANZA_RESULTS_CHANNEL;
-            await sendMessage(client, "❌ An error occurred during Daily Bonanza execution. Please check the logs.", errorChannelId);
+            // Use the same channel ID for error messages
+            await sendMessage(client, "❌ An error occurred during Daily Bonanza execution. Please check the logs.", '1272752734721937480');
         } catch (discordError) {
             console.error('Failed to send error message to Discord:', discordError);
         }
