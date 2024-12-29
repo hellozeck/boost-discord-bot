@@ -83,11 +83,11 @@ async function deployCommands() {
 // Parse command line arguments
 const args = process.argv.slice(2);
 
-async function init() {
+async function init(client) {
     // Execute immediately if --run-now or -r flag is present
     if (args.includes('--run-now') || args.includes('-r')) {
         console.log('Executing Bonanza immediately...');
-        await runBonanza();
+        await runBonanza(client);
         process.exit(0);
     }
 
@@ -95,7 +95,7 @@ async function init() {
     console.log('Setting up scheduled task...');
     scheduleJob('0 0 * * *', async () => {
         console.log('Starting scheduled Bonanza execution...');
-        await runBonanza();
+        await runBonanza(client);
     });
 }
 
@@ -104,7 +104,7 @@ client.once(Events.ClientReady, async () => {
     // Initialize active giveaways when bot starts
     await initializeGiveaways(client);
     // Initialize Bonanza schedule
-    await init();
+    await init(client);
 });
 
 client.login(process.env.DISCORD_TOKEN)

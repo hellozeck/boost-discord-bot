@@ -1,38 +1,23 @@
-const { EmbedBuilder } = require('discord.js');
 const channelMapping = require('../config/channelMapping');
 
-async function sendMessage(client, message, channelType = 'daily-bonanza') {
+async function sendMessage(client, message) {
     try {
-        // Get channel ID from channelMapping
-        const channelId = Object.entries(channelMapping)
-            .find(([_, value]) => value === channelType)?.[0];
-
-        if (!channelId) {
-            throw new Error(`Channel type ${channelType} not configured`);
+        // 确保 client 已经准备好
+        if (!client || !client.isReady()) {
+            console.error('Discord client is not ready');
+            return;
         }
 
-        const channel = await client.channels.fetch(channelId);
-        
-        // If message is a string, create a basic embed
-        if (typeof message === 'string') {
-            const embed = new EmbedBuilder()
-                .setDescription(message)
-                .setColor('#FF0000')
-                .setTimestamp();
-
-            await channel.send({ embeds: [embed] });
-        } else {
-            // If message is already a complete message options object, send directly
-            await channel.send(message);
+        const channel = await client.channels.fetch(channelMapping.BONANZA_CHANNEL);
+        if (!channel) {
+            throw new Error('Could not find the specified channel');
         }
 
-        console.log(`Message sent to ${channelType} channel successfully`);
+        await channel.send(message);
     } catch (error) {
         console.error('Error sending message to Discord:', error);
         throw error;
     }
 }
 
-module.exports = {
-    sendMessage
-}; 
+module.exports = { sendMessage }; 

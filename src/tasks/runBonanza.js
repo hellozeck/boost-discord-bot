@@ -125,6 +125,12 @@ async function fetchParticipantsFromDB() {
 
 async function runBonanza(client) {
     try {
+        // make sure client is ready
+        if (!client || !client.isReady()) {
+            console.error('Discord client is not ready');
+            return;
+        }
+
         console.log("Boost Guild Auto Boost starting...");
         
         // Step 1: Fetch data from Dune
@@ -166,7 +172,11 @@ Good luck next time to everyone else! 🍀
         const messageParts = splitMessage(fullMessage);
 
         for (const part of messageParts) {
-            await sendMessage(client, part);
+            try {
+                await sendMessage(client, part);
+            } catch (error) {
+                console.error('Failed to send message part:', error);
+            }
         }
 
         // Update saveBonanzaResults call to use winner wallets
@@ -177,8 +187,12 @@ Good luck next time to everyone else! 🍀
         if (error instanceof Error) {
             console.error("Error message:", error.message);
         }
-        // Add error notification to Discord
-        await sendMessage(client, "❌ An error occurred during Daily Bonanza execution. Please check the logs.");
+        // send error message to discord
+        try {
+            await sendMessage(client, "❌ An error occurred during Daily Bonanza execution. Please check the logs.");
+        } catch (discordError) {
+            console.error('Failed to send error message to Discord:', discordError);
+        }
     }
 }
 
