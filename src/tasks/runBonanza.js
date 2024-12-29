@@ -159,7 +159,7 @@ async function runBonanza(client) {
 
         console.log("Lottery winners:");
         winners.forEach((winner, index) => {
-            console.log(`${index + 1}. ${winner.wallet}`);
+            console.log(`${index + 1}. Wallet: ${winner.wallet}, User ID: ${winner.user_id}`);
         });
 
         const fullMessage = `
