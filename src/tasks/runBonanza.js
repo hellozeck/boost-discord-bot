@@ -3,6 +3,8 @@ const dotenv = require("dotenv");
 const { EmbedBuilder } = require('discord.js');
 const channelMapping = require('../config/channelMapping');
 const { sendMessage } = require('../utils/sendToDiscord');
+// Import the configured Supabase client
+const supabase = require('../utils/supabase');
 
 dotenv.config();
 
