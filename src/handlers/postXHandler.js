@@ -1,23 +1,30 @@
 const { EmbedBuilder } = require('discord.js');
-const { supabase } = require('../utils/supabaseClient');
-const { checkBoostTwitterBinding } = require('../utils/boostApi');
+const supabase = require('../utils/supabase');
+// const { checkBoostTwitterBinding } = require('../utils/boostApi');
 
 module.exports = async function postXHandler(message) {
     try {
         // Check if message contains X (Twitter) link
         const twitterRegex = /(https?:\/\/(twitter|x)\.com\/(\w+)\/status\/(\d+))/i;
+        console.log('Checking message content:', message.content);
+
         const match = message.content.match(twitterRegex);
+        console.log('Regex match result:', match);
 
         if (!match) {
+            console.log(`Invalid message from ${message.author.username} (${message.author.id}):`, message.content);
             await message.delete();
             const reminder = await message.channel.send(
                 `${message.author}, this channel only allows Twitter/X links!`
             );
+            console.log('Sent reminder to user about invalid message');
             setTimeout(() => reminder.delete(), 5000);
             return;
         }
 
-        const [_, tweetUrl, _, username, tweetId] = match;
+        console.log(`Valid X/Twitter link detected from ${message.author.username}:`, match[1]);
+
+        const [fullMatch, tweetUrl, platform, username, tweetId] = match;
 
         // Step 1: Get user's wallet address from wallet_blind table
         const { data: walletData, error: walletError } = await supabase
@@ -53,19 +60,19 @@ module.exports = async function postXHandler(message) {
         }
 
         // Step 3: Verify Twitter binding with Boost API
-        const isTwitterBound = await checkBoostTwitterBinding(
-            walletData.wallet_address,
-            username
-        );
+        // const isTwitterBound = await checkBoostTwitterBinding(
+        //     walletData.wallet_address,
+        //     username
+        // );
 
-        if (!isTwitterBound) {
-            await message.delete();
-            const reminder = await message.channel.send(
-                `${message.author}, your wallet must be bound to this Twitter account in Boost!`
-            );
-            setTimeout(() => reminder.delete(), 5000);
-            return;
-        }
+        // if (!isTwitterBound) {
+        //     await message.delete();
+        //     const reminder = await message.channel.send(
+        //         `${message.author}, your wallet must be bound to this Twitter account in Boost!`
+        //     );
+        //     setTimeout(() => reminder.delete(), 5000);
+        //     return;
+        // }
 
         // Step 4: Store verified tweet in Supabase
         const { error: insertError } = await supabase
@@ -90,12 +97,12 @@ module.exports = async function postXHandler(message) {
             })
             .setDescription(message.content)
             .addFields(
-                { name: 'Wallet', value: `${walletData.wallet_address.slice(0, 6)}...${walletData.wallet_address.slice(-4)}` }
+                { name: 'Wallet', value: `${walletData.wallet_address.slice(0, 6)}...${walletData.wallet_address.slice(-4)}` },
+                { name: 'Status', value: '✅ Tweet successfully recorded!' }
             )
             .setTimestamp();
 
         await message.channel.send({ embeds: [embed] });
-        await message.delete();
 
     } catch (error) {
         console.error('Error in postXHandler:', error);

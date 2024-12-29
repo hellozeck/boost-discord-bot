@@ -1,41 +1,40 @@
 const { EmbedBuilder } = require('discord.js');
+const supabase = require('../utils/supabase');
 
 module.exports = async function feedbackHandler(message) {
-    // Create embed for feedback display
-    const embed = new EmbedBuilder()
-        .setColor('#00FF00')
-        .setTitle('New Feedback Received!')
-        .setAuthor({
-            name: message.author.username,
-            iconURL: message.author.displayAvatarURL()
-        })
-        .setDescription(message.content)
-        .addFields(
-            { name: 'User ID', value: message.author.id },
-            { name: 'Submission Time', value: new Date().toLocaleString() }
-        )
-        .setTimestamp();
-
     try {
-        // Store feedback in database if you have one
-        // await saveFeedbackToDatabase({
-        //     userId: message.author.id,
-        //     content: message.content,
-        //     timestamp: new Date()
-        // });
+        // Store feedback in Supabase
+        const { error: insertError } = await supabase
+            .from('user_feedback')
+            .insert({
+                user_id: message.author.id,
+                username: message.author.username,
+                content: message.content,
+                created_at: new Date().toISOString()
+            });
 
-        // Send formatted feedback in the feedback channel
+        if (insertError) throw insertError;
+
+        // Create and send embed for feedback confirmation
+        const embed = new EmbedBuilder()
+            .setColor('#00FF00')
+            .setAuthor({
+                name: message.author.username,
+                iconURL: message.author.displayAvatarURL()
+            })
+            .setDescription(message.content)
+            .addFields(
+                { name: 'Status', value: '✅ Feedback successfully recorded!' }
+            )
+            .setTimestamp();
+
         await message.channel.send({ embeds: [embed] });
 
-        // Add reaction to indicate receipt
-        await message.react('✅');
-
-        // Optional: Send confirmation message to user
-        await message.author.send('Thank you for your feedback! We will review it carefully.').catch(() => {
-            // Ignore error if user has DMs disabled
-        });
     } catch (error) {
-        console.error('Error processing feedback:', error);
-        await message.react('❌');
+        console.error('Error in feedbackHandler:', error);
+        const errorMsg = await message.channel.send(
+            `${message.author}, an error occurred while processing your feedback.`
+        );
+        setTimeout(() => errorMsg.delete(), 5000);
     }
 }; 

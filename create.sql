@@ -58,5 +58,74 @@ create table gm_records (
     created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
--- 添加username索引以提升查询性能
 create index idx_gm_records_username on gm_records(username);
+
+
+-- Function to increment GM count for a user
+-- Returns the updated GM count after increment
+create or replace function increment_gm_count(p_user_id text, p_username text)
+returns table (gm_count bigint) as $$
+begin
+    return query
+    insert into gm_records (user_id, username, gm_count, last_gm_at)
+    values (p_user_id, p_username, 1, now())
+    on conflict (user_id) 
+    do update set 
+        username = p_username,
+        gm_count = gm_records.gm_count + 1,
+        last_gm_at = now()
+    returning gm_count;  -- Return the updated count
+end;
+$$ language plpgsql;
+
+
+create table user_feedback (
+    id serial primary key,
+    user_id text not null,
+    username text not null,
+    content text not null,
+    created_at timestamp with time zone default timezone('utc'::text, now())
+);
+
+create index idx_user_feedback_user_id on user_feedback(user_id);
+
+
+CREATE TABLE system_settings (
+    id SERIAL PRIMARY KEY,
+    key VARCHAR(255) UNIQUE NOT NULL,
+    value TEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE IF NOT EXISTS boost_participants (
+    recipient TEXT PRIMARY KEY,
+    boost_completed_count INTEGER NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE OR REPLACE FUNCTION public.get_boost_participants()
+RETURNS TABLE (
+    wallet text,
+    user_id text,
+    boost_completed_count integer
+) 
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        wb.wallet,
+        wb.user_id,
+        bp.boost_completed_count
+    FROM wallet_blind wb
+    INNER JOIN boost_participants bp 
+        ON wb.wallet = bp.recipient
+    WHERE bp.boost_completed_count > 0
+    ORDER BY bp.boost_completed_count DESC;
+END;
+$$;

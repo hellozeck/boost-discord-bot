@@ -22,8 +22,16 @@ start_app() {
     TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
     LOG_FILE="logs/app_$TIMESTAMP.log"
 
-    # Start application with nohup
-    nohup npm start > "$LOG_FILE" 2>&1 &
+    # Start application with nohup and pass any arguments
+    if [ $# -eq 0 ]; then
+        # No arguments provided, start normally
+        echo "Starting bot in normal mode..."
+        nohup node src/index.js > "$LOG_FILE" 2>&1 &
+    else
+        # Pass all arguments to the Node.js application
+        echo "Starting bot with arguments: $@"
+        nohup node src/index.js "$@" > "$LOG_FILE" 2>&1 &
+    fi
 
     # Get process ID
     PID=$!
@@ -38,18 +46,20 @@ start_app() {
 # Main logic
 case "$1" in
     start)
+        shift  # Remove 'start' from arguments
         stop_app
-        start_app
+        start_app "$@"  # Pass remaining arguments
         ;;
     restart)
+        shift  # Remove 'restart' from arguments
         stop_app
-        start_app
+        start_app "$@"  # Pass remaining arguments
         ;;
     stop)
         stop_app
         ;;
     *)
-        echo "Usage: $0 {start|stop|restart}"
+        echo "Usage: $0 {start|stop|restart} [--run-now|-r]"
         exit 1
         ;;
 esac

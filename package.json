@@ -5,15 +5,18 @@
   "main": "index.js",
   "scripts": {
     "start": "node src/index.js",
+    "run-bonanza": "node src/index.js --run-now",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@duneanalytics/client-sdk": "^0.2.4",
     "@supabase/supabase-js": "^2.45.6",
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.5",
-    "ethers": "^6.13.4"
+    "ethers": "^6.13.4",
+    "node-schedule": "^2.1.1"
   }
 }
