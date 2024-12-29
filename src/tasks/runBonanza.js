@@ -115,6 +115,7 @@ async function fetchParticipantsFromDB() {
 
         return data.map(row => ({
             recipient: row.wallet,
+            user_id: row.user_id,
             boost_completed_count: Number(row.boost_completed_count)
         }));
     } catch (error) {
@@ -166,7 +167,7 @@ async function runBonanza(client) {
 🎰 **Boost Daily Bonanza Results**
 
 📅 Date: ${new Date().toISOString().split('T')[0]}
-👥 Total Participants: ${data.length}
+👥 Total Participants: ${duneData.length}
 🎁 Number of Winners: ${winners.length}
 
 🏆 **Winners**:
