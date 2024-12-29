@@ -2,6 +2,7 @@ const { DuneClient } = require("@duneanalytics/client-sdk");
 const dotenv = require("dotenv");
 const { EmbedBuilder } = require('discord.js');
 const channelMapping = require('../config/channelMapping');
+const { sendMessage } = require('../utils/sendToDiscord');
 
 dotenv.config();
 
@@ -119,7 +120,7 @@ async function fetchParticipantsFromDB() {
     }
 }
 
-async function runBonanza() {
+async function runBonanza(client) {
     try {
         console.log("Boost Guild Auto Boost starting...");
         
@@ -162,7 +163,7 @@ Good luck next time to everyone else! 🍀
         const messageParts = splitMessage(fullMessage);
 
         for (const part of messageParts) {
-            await sendMessage(part);
+            await sendMessage(client, part);
         }
 
         // Update saveBonanzaResults call to use winner wallets
@@ -174,7 +175,7 @@ Good luck next time to everyone else! 🍀
             console.error("Error message:", error.message);
         }
         // Add error notification to Discord
-        await sendMessage("❌ An error occurred during Daily Bonanza execution. Please check the logs.");
+        await sendMessage(client, "❌ An error occurred during Daily Bonanza execution. Please check the logs.");
     }
 }
 
