@@ -1,6 +1,7 @@
 const { DuneClient } = require("@duneanalytics/client-sdk");
-const { sendMessage } = require('../utils/sendToDiscord');
 const dotenv = require("dotenv");
+const { EmbedBuilder } = require('discord.js');
+const channelMapping = require('../config/channelMapping');
 
 dotenv.config();
 
@@ -193,7 +194,6 @@ async function saveBonanzaResults(winners, totalParticipants) {
     }
 }
 
-// Export the function using CommonJS syntax
 module.exports = {
     runBonanza
 }; 
