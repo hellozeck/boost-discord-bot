@@ -1,4 +1,4 @@
-import { DuneClient } from "@duneanalytics/client-sdk";
+const { DuneClient } = require("@duneanalytics/client-sdk");
 import { sendMessage } from '../utils/sendToDiscord';
 import dotenv from "dotenv";
 
@@ -191,4 +191,8 @@ async function saveBonanzaResults(winners, totalParticipants) {
     } catch (error) {
         console.error("Error saving Bonanza results:", error);
     }
-} 
+}
+
+module.exports = {
+    runBonanza
+}; 
