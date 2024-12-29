@@ -1,6 +1,6 @@
 const { DuneClient } = require("@duneanalytics/client-sdk");
-import { sendMessage } from '../utils/sendToDiscord';
-import dotenv from "dotenv";
+const { sendMessage } = require('../utils/sendToDiscord');
+const dotenv = require("dotenv");
 
 dotenv.config();
 

@@ -1,7 +1,6 @@
 const cron = require('node-cron');
 const supabase = require('../utils/supabase');
-const { runBonanza } = require('./runBonanza'); // 你现有的抽奖逻辑
-
+const { runBonanza } = require('./runBonanza'); 
 // Run at UTC 00:00 every day
 cron.schedule('0 0 * * *', async () => {
     try {
