@@ -3,8 +3,9 @@ const dotenv = require("dotenv");
 const { EmbedBuilder } = require('discord.js');
 const channelMapping = require('../config/channelMapping');
 const { sendMessage } = require('../utils/sendToDiscord');
-// Import the configured Supabase client
+
 const supabase = require('../utils/supabase');
+const client=require('../utils/discordClient');
 
 dotenv.config();
 
@@ -109,7 +110,7 @@ async function fetchParticipantsFromDB() {
         if (error) throw error;
 
         if (!data || data.length === 0) {
-            throw new Error("没有找到参与者数据");
+            throw new Error("No participants data found");
         }
 
         return data.map(row => ({
@@ -117,7 +118,7 @@ async function fetchParticipantsFromDB() {
             boost_completed_count: Number(row.boost_completed_count)
         }));
     } catch (error) {
-        console.error("从数据库获取参与者数据时出错:", error);
+        console.error("Error fetching participants from database:", error);
         throw error;
     }
 }
