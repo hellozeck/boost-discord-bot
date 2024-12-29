@@ -4,25 +4,26 @@ const supabase = require('../utils/supabase');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('bonanza')
-        .setDescription('管理 Daily Bonanza 状态')
+        .setDescription('Manage Daily Bonanza status')
         .addSubcommand(subcommand =>
             subcommand
                 .setName('enable')
-                .setDescription('启用 Daily Bonanza'))
+                .setDescription('Enable Daily Bonanza'))
         .addSubcommand(subcommand =>
             subcommand
                 .setName('disable')
-                .setDescription('禁用 Daily Bonanza'))
+                .setDescription('Disable Daily Bonanza'))
         .addSubcommand(subcommand =>
             subcommand
                 .setName('status')
-                .setDescription('查看 Daily Bonanza 当前状态')),
+                .setDescription('View Daily Bonanza current status')),
 
     async execute(interaction) {
-        // 验证管理员权限
+        // Verify administrator permissions
+        // Only administrators can manage Bonanza status
         if (!interaction.member.permissions.has('ADMINISTRATOR')) {
             await interaction.reply({
-                content: '只有管理员可以管理 Bonanza 状态',
+                content: 'Only administrators can manage Bonanza status',
                 ephemeral: true
             });
             return;
@@ -43,9 +44,9 @@ module.exports = {
                     break;
             }
         } catch (error) {
-            console.error('Bonanza 命令错误:', error);
+            console.error('Bonanza command error:', error);
             await interaction.reply({
-                content: '执行命令时发生错误，请稍后重试',
+                content: 'An error occurred while executing the command, please try again later',
                 ephemeral: true
             });
         }
@@ -64,7 +65,7 @@ async function enableBonanza(interaction) {
     if (error) throw error;
 
     await interaction.reply({
-        content: '✅ Daily Bonanza 已启用！每天 UTC 00:00 将自动执行抽奖。',
+        content: '✅ Daily Bonanza enabled! The draw will be executed automatically every day at UTC 00:00.',
         ephemeral: false
     });
 }
@@ -81,7 +82,7 @@ async function disableBonanza(interaction) {
     if (error) throw error;
 
     await interaction.reply({
-        content: '⏸️ Daily Bonanza 已禁用。',
+        content: '⏸️ Daily Bonanza disabled.',
         ephemeral: false
     });
 }
@@ -95,9 +96,9 @@ async function getBonanzaStatus(interaction) {
 
     if (error) throw error;
 
-    const status = data?.value ? '已启用' : '已禁用';
+    const status = data?.value ? 'Enabled' : 'Disabled';
     await interaction.reply({
-        content: `🎯 Daily Bonanza 当前状态: ${status}`,
+        content: `🎯 Daily Bonanza current status: ${status}`,
         ephemeral: true
     });
 } 

@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const { Client, GatewayIntentBits, Collection, REST, Routes, Events } = require('discord.js');
 const { initializeGiveaways } = require('./utils/giveawayManager');
+const { runBonanza } = require('./tasks/runBonanza');
+const { scheduleJob } = require('node-schedule');
 
 const client = new Client({
     intents: [
@@ -78,10 +80,31 @@ async function deployCommands() {
     }
 }
 
+// Parse command line arguments
+const args = process.argv.slice(2);
+
+async function init() {
+    // Execute immediately if --run-now or -r flag is present
+    if (args.includes('--run-now') || args.includes('-r')) {
+        console.log('Executing Bonanza immediately...');
+        await runBonanza();
+        process.exit(0);
+    }
+
+    // Original scheduled task logic
+    console.log('Setting up scheduled task...');
+    scheduleJob('0 0 * * *', async () => {
+        console.log('Starting scheduled Bonanza execution...');
+        await runBonanza();
+    });
+}
+
 client.once(Events.ClientReady, async () => {
     console.log('Bot is ready!');
     // Initialize active giveaways when bot starts
     await initializeGiveaways(client);
+    // Initialize Bonanza schedule
+    await init();
 });
 
 client.login(process.env.DISCORD_TOKEN)
@@ -132,3 +155,4 @@ client.once(Events.ClientReady, () => {
     console.log(`[Bot] Logged in as ${client.user.tag}`);
     console.log('[Bot] Commands loaded:', Array.from(client.commands.keys()));
 });
+

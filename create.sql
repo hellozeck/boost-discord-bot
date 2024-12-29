@@ -88,3 +88,44 @@ create table user_feedback (
 );
 
 create index idx_user_feedback_user_id on user_feedback(user_id);
+
+
+CREATE TABLE system_settings (
+    id SERIAL PRIMARY KEY,
+    key VARCHAR(255) UNIQUE NOT NULL,
+    value TEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE IF NOT EXISTS boost_participants (
+    recipient TEXT PRIMARY KEY,
+    boost_completed_count INTEGER NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE OR REPLACE FUNCTION public.get_boost_participants()
+RETURNS TABLE (
+    wallet text,
+    user_id text,
+    boost_completed_count integer
+) 
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        wb.wallet,
+        wb.user_id,
+        bp.boost_completed_count
+    FROM wallet_blind wb
+    INNER JOIN boost_participants bp 
+        ON wb.wallet = bp.recipient
+    WHERE bp.boost_completed_count > 0
+    ORDER BY bp.boost_completed_count DESC;
+END;
+$$;
