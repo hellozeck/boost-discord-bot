@@ -5,7 +5,7 @@ const channelMapping = require('../config/channelMapping');
 const { sendMessage } = require('../utils/sendToDiscord');
 
 const supabase = require('../utils/supabase');
-const client=require('../utils/discordClient');
+const client = require('../utils/discordClient');
 
 dotenv.config();
 
@@ -91,7 +91,7 @@ async function saveParticipantsToDatabase(participants) {
                 .insert(batch);
 
             if (insertError) throw insertError;
-            
+
             console.log(`Inserted batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(participants.length / BATCH_SIZE)}`);
         }
 
@@ -126,6 +126,23 @@ async function fetchParticipantsFromDB() {
 
 async function runBonanza(client) {
     try {
+        // check is bonanza enble
+        const { data: settings, error: settingsError } = await supabase
+            .from('system_settings')
+            .select('value')
+            .eq('key', 'bonanza_enabled')
+            .single();
+
+        if (settingsError) {
+            console.error('Error fetching bonanza settings:', settingsError);
+            return;
+        }
+
+        if (!settings?.value) {
+            console.log('Bonanza is currently disabled');
+            return;
+        }
+
         // make sure client is ready
         if (!client || !client.isReady()) {
             console.error('Discord client is not ready');
@@ -133,7 +150,7 @@ async function runBonanza(client) {
         }
 
         console.log("Boost Guild Auto Boost starting...");
-        
+
         // Directly use the channel ID for daily-bonanza
         const channelId = '1272752734721937480'; // Daily Bonanza channel
         if (!channelId) {
@@ -148,7 +165,7 @@ async function runBonanza(client) {
         // Step 2: Save to database
         console.log("Saving participants data to database...");
         await saveParticipantsToDatabase(duneData);
-        
+
         // Step 3: Fetch from database for lottery
         console.log("Fetching participants data from database...");
         const data = await fetchParticipantsFromDB();
