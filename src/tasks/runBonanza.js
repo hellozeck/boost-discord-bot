@@ -192,7 +192,7 @@ async function runBonanza(client) {
         const data = await fetchParticipantsFromDB();
         console.log(`Retrieved ${data.length} participants from database`);
 
-        const numWinners = 20;
+        const numWinners = parseInt(process.env.BONANZA_WINNERS_COUNT) || 20;
         console.log(`Starting weighted lottery to select ${numWinners} winners...`);
         const winners = weightedLottery(data, numWinners);
 
