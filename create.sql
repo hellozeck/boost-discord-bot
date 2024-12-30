@@ -124,7 +124,7 @@ BEGIN
         bp.boost_completed_count
     FROM wallet_blind wb
     INNER JOIN boost_participants bp 
-        ON wb.wallet = bp.recipient
+        ON LOWER(wb.wallet) = LOWER(bp.recipient)
     WHERE bp.boost_completed_count > 0
     ORDER BY bp.boost_completed_count DESC;
 END;

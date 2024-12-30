@@ -93,7 +93,7 @@ async function init(client) {
 
     // Original scheduled task logic
     console.log('Setting up scheduled task...');
-    const job = scheduleJob('0 10 * * *', async () => {
+    const job = scheduleJob('0 11 * * *', async () => {
         console.log('Starting scheduled Bonanza execution...');
         await runBonanza(client);
     });
