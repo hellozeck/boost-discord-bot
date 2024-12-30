@@ -211,7 +211,7 @@ async function runBonanza(client) {
 🏆 **Winners**:
 ${winners.map((winner, index) => `${index + 1}. <@${winner.user_id}>`).join('\n')}
 
-Congratulations to the winners! Rewards will be issued within 24 hours.
+Congratulations to the winners! Rewards will be issued within 2 hours.
 Good luck next time to everyone else! 🍀
 `;
         const messageParts = splitMessage(fullMessage);
