@@ -104,16 +104,37 @@ async function saveParticipantsToDatabase(participants) {
 
 async function fetchParticipantsFromDB() {
     try {
-        const { data, error } = await supabase
-            .rpc('get_boost_participants');
+        let allData = [];
+        let page = 0;
+        const pageSize = 1000;
 
-        if (error) throw error;
+        while (true) {
+            const { data, error, count } = await supabase
+                .rpc('get_boost_participants')
+                .range(page * pageSize, (page + 1) * pageSize - 1);
 
-        if (!data || data.length === 0) {
+            if (error) throw error;
+
+            if (!data || data.length === 0) {
+                break;
+            }
+
+            allData = allData.concat(data);
+
+            if (data.length < pageSize) {
+                break;
+            }
+
+            page++;
+        }
+
+        if (allData.length === 0) {
             throw new Error("No participants data found");
         }
 
-        return data.map(row => ({
+        console.log(`Total participants fetched: ${allData.length}`);
+
+        return allData.map(row => ({
             recipient: row.wallet,
             user_id: row.user_id,
             boost_completed_count: Number(row.boost_completed_count)
