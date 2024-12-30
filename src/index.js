@@ -93,17 +93,25 @@ async function init(client) {
 
     // Original scheduled task logic
     console.log('Setting up scheduled task...');
-    scheduleJob('0 0 * * *', async () => {
+    const job = scheduleJob('0 8 * * *', async () => {
         console.log('Starting scheduled Bonanza execution...');
         await runBonanza(client);
     });
+
+    if (job) {
+        console.log('Bonanza schedule successfully set for CST 10:00 (UTC 2:00)');
+        console.log('Next run scheduled for:', job.nextInvocation());
+    } else {
+        console.error('Failed to schedule Bonanza task');
+    }
 }
 
 client.once(Events.ClientReady, async () => {
-    console.log('Bot is ready!');
-    // Initialize active giveaways when bot starts
+    console.log(`[Bot] Logged in as ${client.user.tag}`);
+    console.log('[Bot] Commands loaded:', Array.from(client.commands.keys()));
+
+    // 添加初始化逻辑
     await initializeGiveaways(client);
-    // Initialize Bonanza schedule
     await init(client);
 });
 
@@ -149,10 +157,3 @@ client.on(Events.InteractionCreate, async interaction => {
         }
     }
 });
-
-// Add ready event log
-client.once(Events.ClientReady, () => {
-    console.log(`[Bot] Logged in as ${client.user.tag}`);
-    console.log('[Bot] Commands loaded:', Array.from(client.commands.keys()));
-});
-

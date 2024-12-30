@@ -5,7 +5,7 @@ const channelMapping = require('../config/channelMapping');
 const { sendMessage } = require('../utils/sendToDiscord');
 
 const supabase = require('../utils/supabase');
-const client=require('../utils/discordClient');
+const client = require('../utils/discordClient');
 
 dotenv.config();
 
@@ -91,7 +91,7 @@ async function saveParticipantsToDatabase(participants) {
                 .insert(batch);
 
             if (insertError) throw insertError;
-            
+
             console.log(`Inserted batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(participants.length / BATCH_SIZE)}`);
         }
 
@@ -104,16 +104,37 @@ async function saveParticipantsToDatabase(participants) {
 
 async function fetchParticipantsFromDB() {
     try {
-        const { data, error } = await supabase
-            .rpc('get_boost_participants');
+        let allData = [];
+        let page = 0;
+        const pageSize = 1000;
 
-        if (error) throw error;
+        while (true) {
+            const { data, error, count } = await supabase
+                .rpc('get_boost_participants')
+                .range(page * pageSize, (page + 1) * pageSize - 1);
 
-        if (!data || data.length === 0) {
+            if (error) throw error;
+
+            if (!data || data.length === 0) {
+                break;
+            }
+
+            allData = allData.concat(data);
+
+            if (data.length < pageSize) {
+                break;
+            }
+
+            page++;
+        }
+
+        if (allData.length === 0) {
             throw new Error("No participants data found");
         }
 
-        return data.map(row => ({
+        console.log(`Total participants fetched: ${allData.length}`);
+
+        return allData.map(row => ({
             recipient: row.wallet,
             user_id: row.user_id,
             boost_completed_count: Number(row.boost_completed_count)
@@ -126,6 +147,23 @@ async function fetchParticipantsFromDB() {
 
 async function runBonanza(client) {
     try {
+        // check is bonanza enble
+        const { data: settings, error: settingsError } = await supabase
+            .from('system_settings')
+            .select('value')
+            .eq('key', 'bonanza_enabled')
+            .single();
+
+        if (settingsError) {
+            console.error('Error fetching bonanza settings:', settingsError);
+            return;
+        }
+
+        if (!settings?.value) {
+            console.log('Bonanza is currently disabled');
+            return;
+        }
+
         // make sure client is ready
         if (!client || !client.isReady()) {
             console.error('Discord client is not ready');
@@ -133,7 +171,7 @@ async function runBonanza(client) {
         }
 
         console.log("Boost Guild Auto Boost starting...");
-        
+
         // Directly use the channel ID for daily-bonanza
         const channelId = '1272752734721937480'; // Daily Bonanza channel
         if (!channelId) {
@@ -148,13 +186,13 @@ async function runBonanza(client) {
         // Step 2: Save to database
         console.log("Saving participants data to database...");
         await saveParticipantsToDatabase(duneData);
-        
+
         // Step 3: Fetch from database for lottery
         console.log("Fetching participants data from database...");
         const data = await fetchParticipantsFromDB();
         console.log(`Retrieved ${data.length} participants from database`);
 
-        const numWinners = 50;
+        const numWinners = parseInt(process.env.BONANZA_WINNERS_COUNT) || 20;
         console.log(`Starting weighted lottery to select ${numWinners} winners...`);
         const winners = weightedLottery(data, numWinners);
 
@@ -173,7 +211,7 @@ async function runBonanza(client) {
 🏆 **Winners**:
 ${winners.map((winner, index) => `${index + 1}. <@${winner.user_id}>`).join('\n')}
 
-Congratulations to the winners! Rewards will be issued within 24 hours.
+Congratulations to the winners! Rewards will be issued within 2 hours.
 Good luck next time to everyone else! 🍀
 `;
         const messageParts = splitMessage(fullMessage);
