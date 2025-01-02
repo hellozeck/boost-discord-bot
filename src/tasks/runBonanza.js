@@ -163,6 +163,12 @@ async function runBonanza(client) {
             console.log(`${index + 1}. Wallet: ${winner.wallet}, User ID: ${winner.user_id}`);
         });
 
+        // Add separate wallet-only list
+        console.log("\nWinner wallets only:");
+        winners.forEach((winner, index) => {
+            console.log(winner.wallet);
+        });
+
         const fullMessage = `
 🎰 **Boost Daily Bonanza Results**
 
