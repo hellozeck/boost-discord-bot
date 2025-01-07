@@ -120,7 +120,10 @@ async function getBonanzaStatus(interaction) {
 
     if (error) throw error;
 
-    const status = data?.value ? 'Enabled' : 'Disabled';
+    // Convert string "false" to boolean false
+    const isEnabled = data?.value === true || data?.value === "true";
+    const status = isEnabled ? 'Enabled' : 'Disabled';
+    
     await interaction.reply({
         content: `🎯 Daily Bonanza current status: ${status}`,
         ephemeral: true
