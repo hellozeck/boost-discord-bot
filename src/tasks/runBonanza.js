@@ -126,6 +126,22 @@ async function fetchParticipantsFromDB() {
 
 async function runBonanza(client) {
     try {
+        // Check bonanza status first
+        const { data: bonanzaStatus, error } = await supabase
+            .from('system_settings')
+            .select('value')
+            .eq('key', 'bonanza_enabled')
+            .single();
+
+        if (error) throw error;
+
+        // Convert string "false" to boolean false
+        const isEnabled = bonanzaStatus?.value === true || bonanzaStatus?.value === "true";
+        if (!isEnabled) {
+            console.log("Bonanza is currently disabled. Skipping execution.");
+            return;
+        }
+
         // make sure client is ready
         if (!client || !client.isReady()) {
             console.error('Discord client is not ready');
@@ -151,12 +167,12 @@ async function runBonanza(client) {
         
         // Step 3: Fetch from database for lottery
         console.log("Fetching participants data from database...");
-        const data = await fetchParticipantsFromDB();
-        console.log(`Retrieved ${data.length} participants from database`);
+        const participants = await fetchParticipantsFromDB();
+        console.log(`Retrieved ${participants.length} participants from database`);
 
         const numWinners = 50;
         console.log(`Starting weighted lottery to select ${numWinners} winners...`);
-        const winners = weightedLottery(data, numWinners);
+        const winners = weightedLottery(participants, numWinners);
 
         console.log("Lottery winners:");
         winners.forEach((winner, index) => {
@@ -192,7 +208,7 @@ Good luck next time to everyone else! 🍀
             }
         }
 
-        await saveBonanzaResults(winners.map(w => w.wallet), data.length);
+        await saveBonanzaResults(winners.map(w => w.wallet), participants.length);
 
     } catch (error) {
         console.error("An error occurred during Bonanza:", error);
