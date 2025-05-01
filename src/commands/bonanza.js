@@ -54,12 +54,24 @@ module.exports = {
 };
 
 async function enableBonanza(interaction) {
+    // First try to update existing record
+    const { data, error: selectError } = await supabase
+        .from('system_settings')
+        .select()
+        .eq('key', 'bonanza_enabled')
+        .single();
+
+    if (selectError) throw selectError;
+
     const { error } = await supabase
         .from('system_settings')
         .upsert({
+            id: data?.id, // Include the id if record exists
             key: 'bonanza_enabled',
             value: true,
             updated_at: new Date().toISOString()
+        }, {
+            onConflict: 'key' // Specify the column to handle conflict
         });
 
     if (error) throw error;
@@ -71,12 +83,24 @@ async function enableBonanza(interaction) {
 }
 
 async function disableBonanza(interaction) {
+    // First try to update existing record
+    const { data, error: selectError } = await supabase
+        .from('system_settings')
+        .select()
+        .eq('key', 'bonanza_enabled')
+        .single();
+
+    if (selectError) throw selectError;
+
     const { error } = await supabase
         .from('system_settings')
         .upsert({
+            id: data?.id, // Include the id if record exists
             key: 'bonanza_enabled',
             value: false,
             updated_at: new Date().toISOString()
+        }, {
+            onConflict: 'key' // Specify the column to handle conflict
         });
 
     if (error) throw error;
@@ -96,7 +120,10 @@ async function getBonanzaStatus(interaction) {
 
     if (error) throw error;
 
-    const status = data?.value ? 'Enabled' : 'Disabled';
+    // Convert string "false" to boolean false
+    const isEnabled = data?.value === true || data?.value === "true";
+    const status = isEnabled ? 'Enabled' : 'Disabled';
+    
     await interaction.reply({
         content: `🎯 Daily Bonanza current status: ${status}`,
         ephemeral: true
